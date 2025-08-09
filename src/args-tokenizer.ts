@@ -15,6 +15,7 @@ export const tokenizeArgs = (
   let currentToken = "";
   let openningQuote: undefined | string;
   let escaped = false;
+  let quoted_arg = false;
   for (let index = 0; index < argsString.length; index += 1) {
     const char = argsString[index];
 
@@ -34,9 +35,10 @@ export const tokenizeArgs = (
     }
 
     if (openningQuote === undefined && spaceRegex.test(char)) {
-      if (currentToken.length > 0) {
+      if (currentToken.length > 0 || quoted_arg) {
         tokens.push(currentToken);
         currentToken = "";
+        quoted_arg = false;
       }
       continue;
     }
@@ -47,6 +49,7 @@ export const tokenizeArgs = (
         continue;
       }
       if (openningQuote === char) {
+        quoted_arg = true;
         openningQuote = undefined;
         continue;
       }

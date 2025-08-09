@@ -116,3 +116,17 @@ test("empty command", () => {
   expect(tokenizeArgs(``)).toEqual([]);
   expect(tokenizeArgs(`  `)).toEqual([]);
 });
+
+test("empty quoted argument", () => {
+  expect(tokenizeArgs(`a0 "" a1`)).toEqual(["a0", "", "a1"]);
+  expect(tokenizeArgs(`a0 '' a1`)).toEqual(["a0", "", "a1"]);
+  expect(tokenizeArgs(`a0 ""''""'' a1`)).toEqual(["a0", "", "a1"]);
+  // the next test fails, when the erroneous unescaping of newlines in double quotes is fixed
+  // correct test is:
+  // expect(tokenizeArgs(`"a0" "\\\n" a1`)).toEqual(["a0", "", "a1"]);
+  expect(tokenizeArgs(`"a0" "\\\n" a1`)).toEqual(["a0", "\n", "a1"]);
+  // the next test fails, when the erroneous unescaping in single quotes is fixed
+  // correct test is:
+  // expect(tokenizeArgs(`"a0" '\\\n' a1`)).toEqual(["a0", "\\\n", "a1"]);
+  expect(tokenizeArgs(`"a0" '\\\n' a1`)).toEqual(["a0", "\n", "a1"]);
+});
