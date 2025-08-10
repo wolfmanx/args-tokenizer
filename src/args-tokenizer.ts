@@ -1,4 +1,5 @@
 const spaceRegex = /\s/;
+const dqSpecialRegex = /[$`"\\]/;
 
 type Options = {
   loose?: boolean;
@@ -19,18 +20,30 @@ export const tokenizeArgs = (
     const char = argsString[index];
 
     if (escaped) {
+      // Backslashes are not recognized in single quotes, so `escaped`
+      // is never true in this case.
       escaped = false;
-      // escape newline inside of quotes
-      // ignore newline elsewhere
-      if (openningQuote || char !== "\n") {
+      // In other regions, a newline and the preceding backslash
+      // are always dropped.
+      if (char !== "\n") {
+        // In double quotes, special POSIX rules apply (see above).
+        // For the characters <dollar-sign>, <backquote>,
+        // <double-quote> and <backslash> the escaping backslash is
+        // dropped. For all other characters the backslash is kept.
+        if (openningQuote && ! dqSpecialRegex.test(char)) {
+          currentToken += "\\";
+        }
+        // All other characters are kept as is.
         currentToken += char;
       }
       continue;
     }
 
-    if (char === "\\") {
-      escaped = true;
-      continue;
+    if (openningQuote !== "'") {
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
     }
 
     if (openningQuote === undefined && spaceRegex.test(char)) {
